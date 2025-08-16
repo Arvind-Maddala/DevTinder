@@ -1,22 +1,29 @@
 const express = require("express");
 const app = express();
+const connectDB = require("./config/database");
+const User = require("./model/user");
 
-const {adminAuth, userAuth} = require("./middleware/auth");
+// middlerware to get the data from the req
+app.use(express.json());
 
-//creating an middle for all the routes
-app.use("/admin", adminAuth);
+app.post("/signup", async(req, res) => {
+  console.log(req.body);
+  const user = new User(req.body);
 
-app.get("/admin/getAllData", (req, res, next) => {
-  res.send("All data is here");
+  try {
+    await user.save();
+    res.send("User added to the DB");
+  } catch (err) {
+        console.error(err);
+
+    res.status(400).send("Error saving the user");
+  }
 });
-
-// adding userAUth as middleware 
-
-app.get("/user/getUser", userAuth, (req,res)=> {
-    res.send('hello User')
-});
-
-app.get("/login", (req, res) => {
-  res.send("Welcome to login page");
-});
-app.listen(3000);
+connectDB()
+  .then(() => {
+    app.listen(3000);
+    console.log("connected to the database");
+  })
+  .catch((err) => {
+    console.log("Error connecting to the database");
+  });
